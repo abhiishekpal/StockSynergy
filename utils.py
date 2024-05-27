@@ -13,7 +13,7 @@ path = "./"
 # drive.mount('/content/drive')
 # path = "/content/drive/My Drive"
 
-
+# Converting Label Name to numerical values
 label_index = {
     "Up0": 1,
     "Down3": 2,
@@ -31,6 +31,9 @@ label_index = {
 
 
 def cutoff_point(mean, std_dev, percent_away):
+    """
+    For any std_dev computes the point where a given percentile will lie from the mean
+    """
     percent_decimal = percent_away / 200
     z_score = stats.norm.ppf(0.5 + percent_decimal)
     point = z_score * std_dev
@@ -39,6 +42,9 @@ def cutoff_point(mean, std_dev, percent_away):
 
 
 def plot_lines(data, colx, coly):
+    """
+    Plot a particular line plot
+    """
     fig = go.Figure()
 
     for col in coly:
@@ -48,13 +54,24 @@ def plot_lines(data, colx, coly):
 
 
 def get_data_label(start_date=datetime(2015, 1, 1), end_date=datetime(2021, 1, 1)):
+    """
+    Filters the complete prepared data in the provided date range
+    and creates the final numerical label for each event in a stock
+    Input:
+        start_date: start_date for consideration
+        end_date: end_date to cutoff at
+    Returns:
+        temp: new dataframe with ticker, date and its label
+        df: the complete dataframe information in a given date range
+    """
+
     df = pd.read_csv("data_snp500_movement_v2.csv")
     df["current_date"] = pd.to_datetime(df["current_date"])
     df = df.loc[(df["current_date"] > start_date) & (df["current_date"] < end_date)]
     # -1 here signifies that the stock label is not present for this point
     df["label"] = df["movement"].astype(str) + df["movement_type"].astype(str)
-    new_label = dict(df["label"].value_counts())
     df["label_index"] = df["label"].apply(lambda x: label_index.get(x))
+
     temp = df.copy()
     temp["has_missing_values"] = temp.isnull().any(axis=1)
     temp.loc[temp["has_missing_values"] == True, "has_missing_values"] = -1
@@ -66,6 +83,14 @@ def get_data_label(start_date=datetime(2015, 1, 1), end_date=datetime(2021, 1, 1
 
 
 def get_length_of_tickers(temp):
+    """
+    Check length of each stock sequence and verifies if they are same
+    Input:
+        temp: dataframe
+    Returns:
+        length: sequence length
+    """
+
     length = [
         len(temp.loc[temp["Ticker"] == ticker]) for ticker in temp["Ticker"].unique()
     ]
@@ -77,10 +102,24 @@ def get_length_of_tickers(temp):
 
 
 def get_array(temp):
+    """
+    Returns the vector representation of required column
+    """
     return np.array(temp["label_index"])
 
 
 def get_similarity_score(dft, arr, ls):
+
+    """
+    Computes the similarity between each stock sequence
+    Input:
+        arr: array representation of the stock sequence (for easier slicing)
+        dft: dataframe consisting the ticker
+        ls: list with sequence length for each stock
+    Output:
+        scores: similarity matrix
+        all_tickers: ticker list
+    """
 
     all_tickers = dft["Ticker"].unique().tolist()
     scores = np.zeros((len(all_tickers), len(all_tickers)))
@@ -101,6 +140,10 @@ def get_similarity_score(dft, arr, ls):
 
 
 def save_data(data, name):
+    """
+    Save the respective files
+    """
+
     if ".csv" in name:
         data.to_csv(f"{path}/{name}", index=False)
     elif ".npy" in name:
@@ -111,6 +154,9 @@ def save_data(data, name):
 
 
 def load_data(name):
+    """
+    Load the respective file
+    """
     if ".csv" in name:
         data = pd.read_csv(f"{path}/{name}")
     elif ".npy" in name:
@@ -122,6 +168,9 @@ def load_data(name):
 
 
 def sum_except_diagonal(arr):
+    """
+    Sum of elements in a 2d array barring the diagonal
+    """
     arr = np.array(arr)
     diagonal_mask = np.eye(arr.shape[0], dtype=bool)
     sum_except_diag = arr[~diagonal_mask].sum()
