@@ -68,12 +68,14 @@ def get_data_label(start_date=datetime(2015, 1, 1), end_date=datetime(2021, 1, 1
     df = pd.read_csv("data_snp500_movement_v2.csv")
     df["current_date"] = pd.to_datetime(df["current_date"])
     df = df.loc[(df["current_date"] > start_date) & (df["current_date"] < end_date)]
-    # -1 here signifies that the stock label is not present for this point
+    
+    # combining columns of label to derive one column and converting that to a numerical representation
     df["label"] = df["movement"].astype(str) + df["movement_type"].astype(str)
     df["label_index"] = df["label"].apply(lambda x: label_index.get(x))
 
     temp = df.copy()
     temp["has_missing_values"] = temp.isnull().any(axis=1)
+    # -1 here is used to signify that the stock label is not present for this point
     temp.loc[temp["has_missing_values"] == True, "has_missing_values"] = -1
     temp.loc[temp["has_missing_values"] == False, "has_missing_values"] = 1
     temp["label_index"] *= temp["has_missing_values"]
@@ -124,14 +126,21 @@ def get_similarity_score(dft, arr, ls):
     all_tickers = dft["Ticker"].unique().tolist()
     scores = np.zeros((len(all_tickers), len(all_tickers)))
     for i, ticker1 in tqdm(enumerate(all_tickers)):
+        # vector we are going to compare rest against
         base = arr[i * ls : (i + 1) * ls]
         for j, ticker2 in enumerate(all_tickers):
+            # current vector under consideration
             target = arr[j * ls : (j + 1) * ls]
+            # find indexes where base and target are same
             same_mask = (base == target).astype(int)
+            # mask to not consider indexes where mask value was less than 0 since we have filled nan values with -1
             mask_base = (base > 0).astype(int)
             mask_target = (target > 0).astype(int)
+            # If any of the two mask index is False we will consider those to be removed from considering
             remove_mask = mask_base * mask_target
+            # apply the remove mask
             same_mask = same_mask * remove_mask
+            # computing the total % of times when the two sequence overlapps
             matches = np.sum(same_mask)
             total = np.sum(remove_mask)
             similarity = matches / (total + 1)
