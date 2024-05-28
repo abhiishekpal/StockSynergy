@@ -1,1 +1,1 @@
-# StockSyneregy
+# StockSynergy
