@@ -52,6 +52,7 @@ coverage.xml
 *.npy
 *.json
 *.csv
+*.pickle
 cover/
 
 # Translations
