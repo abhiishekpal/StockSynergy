@@ -28,6 +28,20 @@ label_index = {
     "Down0": 11,
     "Down1": 12,
 }
+label_index_eval = {
+    "Up0": 1,
+    "Down3": 2,
+    "Up1": 1,
+    "Flat3": 3,
+    "Up3": 1,
+    "Flat0": 3,
+    "Flat2": 3,
+    "Flat1": 3,
+    "Up2": 1,
+    "Down2": 2,
+    "Down0": 2,
+    "Down1": 2,
+}
 
 
 def cutoff_point(mean, std_dev, percent_away):
@@ -53,7 +67,9 @@ def plot_lines(data, colx, coly):
     fig.show()
 
 
-def get_data_label(start_date=datetime(2015, 1, 1), end_date=datetime(2021, 1, 1)):
+def get_data_label(
+    lab_idx=label_index, start_date=datetime(2015, 1, 1), end_date=datetime(2021, 1, 1)
+):
     """
     Filters the complete prepared data in the provided date range
     and creates the final numerical label for each event in a stock
@@ -68,10 +84,10 @@ def get_data_label(start_date=datetime(2015, 1, 1), end_date=datetime(2021, 1, 1
     df = pd.read_csv("data_snp500_movement_v2.csv")
     df["current_date"] = pd.to_datetime(df["current_date"])
     df = df.loc[(df["current_date"] > start_date) & (df["current_date"] < end_date)]
-    
+
     # combining columns of label to derive one column and converting that to a numerical representation
     df["label"] = df["movement"].astype(str) + df["movement_type"].astype(str)
-    df["label_index"] = df["label"].apply(lambda x: label_index.get(x))
+    df["label_index"] = df["label"].apply(lambda x: lab_idx.get(x))
 
     temp = df.copy()
     temp["has_missing_values"] = temp.isnull().any(axis=1)
@@ -111,7 +127,6 @@ def get_array(temp):
 
 
 def get_similarity_score(dft, arr, ls):
-
     """
     Computes the similarity between each stock sequence
     Input:

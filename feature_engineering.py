@@ -5,11 +5,14 @@ from utils import cutoff_point
 
 
 class FeatureEngineering:
+    """
+    Handing all feature engineering operations
+    """
 
     def __init__(self):
         self.diff_year = 2
-        self.tracking_column = "Adj Close"
-        self.windows = [7, 60]
+        self.tracking_column = "Adj Close"  # Target column
+        self.windows = [7, 60]  # we will look for the movement in these two windows
         self.start_date = datetime(2015, 1, 1)
         self.end_date = datetime.today().date()
 
@@ -23,6 +26,9 @@ class FeatureEngineering:
         return data
 
     def get_price_diff(self, data):
+        """
+        Create Column with price diff over 2 year window
+        """
 
         data["shifted_Date"] = data["index"] + pd.DateOffset(years=self.diff_year)
         data1 = data[["index", self.tracking_column, "shifted_Date"]]
@@ -41,6 +47,9 @@ class FeatureEngineering:
         return joined_data
 
     def _get_movement(self, x):
+        """
+        Label each stock as up down or flat
+        """
         if abs(x) < 0.05:
             return "Flat"
         if x < 0:
@@ -49,6 +58,9 @@ class FeatureEngineering:
             return "Up"
 
     def _get_uncertainity(self, x, window):
+        """
+        Get the if the observed difference is in window of our tolerable range of mean difference in a given window
+        """
 
         if (
             x[f"cutoff_point_{window}_low"]
@@ -59,6 +71,9 @@ class FeatureEngineering:
         return 0
 
     def _get_movement_type(self, x):
+        """
+        Based upon the value got from get_uncertainity we can label the stock into 4 categories
+        """
 
         if x["in_7"] == 1 and x["in_60"] == 1:
             return 0
