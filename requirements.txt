@@ -1,0 +1,10 @@
+black==24.4.2
+exceptiongroup==1.2.0
+ipykernel==6.24.0
+matplotlib==3.9.0
+nbformat==5.10.4
+pip-chill==1.0.3
+plotly==5.22.0
+scipy==1.13.1
+tqdm==4.66.4
+yfinance==0.2.40
